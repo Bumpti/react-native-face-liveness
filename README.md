@@ -39,7 +39,7 @@ There is no webhook: the backend pulls the result. A session id works for one ch
 
 ```jsonc
 // package.json
-"react-native-face-liveness": "github:Bumpti/react-native-face-liveness#v0.1.0"
+"react-native-face-liveness": "github:Bumpti/react-native-face-liveness#v0.1.1"
 ```
 
 ```js
@@ -70,6 +70,8 @@ if ((await requestCameraPermission()) !== "granted") {
   - Pass `-skipPackagePluginValidation -skipMacroValidation`, because the AWS Swift SDK runs a Smithy build-tool plugin that Xcode otherwise asks to trust. Alternatively, set `defaults write com.apple.dt.Xcode IDESkipPackagePluginFingerprintValidatation -bool YES` and `IDESkipMacroFingerprintValidation -bool YES` on the runner.
   - Do not pass `-sdk iphonesimulator`: it builds the plugin's host tool for the simulator and fails with "SmithyCodegenCLI cannot be found". Use `-destination` only.
   - The first build fetches the AWS Swift SDK graph: several GB in DerivedData/SourcePackages.
+  - fastlane's `build_app` reads the build settings first, and with this package graph that takes longer than its 3 s base timeout. Set `FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT=120`.
+- **App Store Connect.** Amplify's CoreML Predictions plugin comes in with the liveness SDK and links `Speech.framework`. A binary without `NSSpeechRecognitionUsageDescription` is refused (ITMS-90683), even though the check never asks for speech. Add the key to `infoPlist` with a plain string, for example "This app doesn't use speech recognition."
 - **Android Kotlin.** The app needs Kotlin 2.2, for example `expo-build-properties` → `android.kotlinVersion: "2.2.0"`. The module pins liveness 1.12.0, built with Kotlin 2.2. Liveness 1.13 pulls kotlin-stdlib 2.3 and kotlinx-serialization 1.11, which neither Kotlin 2.1.20 (the Expo SDK 54 default) nor 2.2 can read: "incompatible version of Kotlin", then an internal compiler error. The plugin also turns on core library desugaring, which the Amplify core libraries require.
 - **Translations.** The SDK reads its strings from the app's main bundle first, so the podspec copies `ios/Localization/*.lproj` there. If the app ships its own `Localizable.strings`, merge the keys into it instead.
 
@@ -125,6 +127,7 @@ Releases are git tags (`v0.1.0`, …). Apps pin a tag.
 | package | iOS SDK | Android SDK |
 |---|---|---|
 | 0.1.0 | amplify-ui-swift-liveness ≥ 1.6.0 < 2 | com.amplifyframework.ui:liveness 1.12.0 (1.13 needs Kotlin 2.3) |
+| 0.1.1 | same | same; Android: mounts inside an RN Modal, pins kotlinx-datetime 0.7.1-0.6.x-compat, pads for the system bars |
 
 ## License
 

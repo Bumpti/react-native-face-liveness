@@ -2,11 +2,16 @@ package expo.modules.faceliveness
 
 import android.content.Context
 import android.view.ViewGroup
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import com.amplifyframework.auth.AWSCredentials
@@ -50,6 +55,17 @@ class FaceLivenessExpoView(context: Context, appContext: AppContext) : ExpoView(
   private var session by mutableStateOf<LivenessSession?>(null)
   private var settledSessionId: String? = null
 
+  // Fabric can lay this view out before it is in a window (an RN Modal mounts its content first).
+  // Measuring the ComposeView then creates its composition with no window recomposer, which throws
+  // "Cannot locate windowRecomposer". Same guard as expo-modules-core's ExpoComposeView.
+  override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+    if (!isAttachedToWindow) {
+      setMeasuredDimension(widthMeasureSpec, heightMeasureSpec)
+      return
+    }
+    super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+  }
+
   init {
     val composeView = ComposeView(context).apply {
       setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
@@ -58,20 +74,24 @@ class FaceLivenessExpoView(context: Context, appContext: AppContext) : ExpoView(
         if (current != null) {
           key(current.sessionId) {
             MaterialTheme(colorScheme = LivenessColorScheme.default()) {
-              FaceLivenessDetector(
-                sessionId = current.sessionId,
-                region = current.region,
-                credentialsProvider = StaticCredentialsProvider(current.credentials),
-                disableStartView = true,
-                onComplete = {
-                  settle(current.sessionId) { onComplete(mapOf()) }
-                },
-                onError = { error ->
-                  settle(current.sessionId) {
-                    onError(mapOf("code" to errorCode(error), "message" to (error.message ?: "")))
+              // Edge-to-edge windows (Android 15+, a full-screen RN Modal) draw under the system bars, and the
+              // detector does not pad for them: its REC and close controls sat behind the status bar.
+              Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).safeDrawingPadding()) {
+                FaceLivenessDetector(
+                  sessionId = current.sessionId,
+                  region = current.region,
+                  credentialsProvider = StaticCredentialsProvider(current.credentials),
+                  disableStartView = true,
+                  onComplete = {
+                    settle(current.sessionId) { onComplete(mapOf()) }
+                  },
+                  onError = { error ->
+                    settle(current.sessionId) {
+                      onError(mapOf("code" to errorCode(error), "message" to (error.message ?: "")))
+                    }
                   }
-                }
-              )
+                )
+              }
             }
           }
         }

@@ -33,6 +33,10 @@ android {
 dependencies {
   // AWS Face Liveness UI (1.12.x: built with Kotlin 2.2 like Expo SDK 54 apps; 1.13 needs Kotlin 2.3).
   implementation "com.amplifyframework.ui:liveness:1.12.0"
+  // Amplify's credentials are built on kotlinx-datetime 0.6 (kotlinx.datetime.Instant), which 0.7 removed. An app
+  // that also pulls 0.7 (Expo's dev launcher does) resolves to 0.7, and the check fails with NoClassDefFoundError.
+  // The compat build is 0.7.1 that keeps the 0.6 Instant, so both sides link.
+  implementation("org.jetbrains.kotlinx:kotlinx-datetime") { version { strictly "0.7.1-0.6.x-compat" } }
   implementation platform("androidx.compose:compose-bom:2026.03.00")
   implementation "androidx.compose.ui:ui"
   implementation "androidx.compose.material3:material3"

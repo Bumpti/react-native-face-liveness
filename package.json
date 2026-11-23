@@ -1,6 +1,6 @@
 {
   "name": "react-native-face-liveness",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "AWS Rekognition Face Liveness for Expo and React Native apps, plus server helpers for Supabase edge functions.",
   "main": "src/index.ts",
   "types": "src/index.ts",
