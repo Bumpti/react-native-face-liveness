@@ -1,0 +1,8 @@
+{
+  "nodeModulesDir": "none",
+  "tasks": {
+    "test": "deno test --allow-net=registry.npmjs.org,jsr.io server/"
+  },
+  "fmt": { "lineWidth": 120, "include": ["server/"] },
+  "lint": { "include": ["server/"] }
+}

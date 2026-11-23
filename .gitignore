@@ -1,0 +1,14 @@
+node_modules/
+.DS_Store
+*.log
+example/node_modules/
+example/ios/
+example/android/
+example/.expo/
+android/build/
+android/.gradle/
+ios/build/
+example/deno.lock
+
+# Supabase CLI state written by scripts/aws-setup.sh
+supabase/.temp/
